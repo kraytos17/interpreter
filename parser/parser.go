@@ -1,19 +1,22 @@
 package parser
 
 import (
+	"fmt"
+
 	"github.com/soumil-kumar17/interpreter/ast"
 	"github.com/soumil-kumar17/interpreter/lexer"
 	"github.com/soumil-kumar17/interpreter/token"
 )
 
 type Parser struct {
-	lexer *lexer.Lexer
+	lexer     *lexer.Lexer
 	currToken token.Token
 	peekToken token.Token
+	errors    []string
 }
 
 func New(lexer *lexer.Lexer) *Parser {
-	parser := &Parser{lexer: lexer}
+	parser := &Parser{lexer: lexer, errors: []string{}}
 	parser.nextTok()
 	parser.nextTok()
 	return parser
@@ -24,13 +27,27 @@ func (parser *Parser) nextTok() {
 	parser.peekToken = parser.lexer.NextToken()
 }
 
-func (parser *Parser) ParseProg () *ast.Program {
+func (parser *Parser) Errors() []string {
+	return parser.errors
+}
+
+func (parser *Parser) peekError(t token.TokenType) {
+	message := fmt.Sprintf("Unexpexted token %s, expected %s", t, parser.currToken.Type)
+	parser.errors = append(parser.errors, message)
+}
+
+func (parser *Parser) ParseProg() *ast.Program {
 	prog := &ast.Program{}
 	prog.Statements = []ast.Statement{}
 
 	for parser.currToken.Type != token.EOF {
 		stmt := parser.parseStatement()
+		if stmt != nil {
+			prog.Statements = append(prog.Statements, stmt)
+		}
+		parser.nextTok()
 	}
+	return prog
 }
 
 func (parser *Parser) parseStatement() ast.Statement {
@@ -74,6 +91,7 @@ func (parser *Parser) expectPeek(t token.TokenType) bool {
 		parser.nextTok()
 		return true
 	} else {
+		parser.peekError(t)
 		return false
 	}
 }
