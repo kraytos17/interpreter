@@ -1,3 +1,3 @@
-module github.com/soumil-kumar17/interpreter
+module  github.com/kraytos17/interpreter
 
-go 1.22.2
+go 1.22.6

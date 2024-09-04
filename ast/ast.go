@@ -3,7 +3,7 @@ package ast
 import (
 	"bytes"
 
-	"github.com/soumil-kumar17/interpreter/token"
+	token "github.com/kraytos17/interpreter/token"
 )
 
 type Node interface {
@@ -46,6 +46,15 @@ type ExpressionStatement struct {
 	Expression Expression
 }
 
+type IntegerLiteral struct {
+	Token token.Token
+	Value int64
+}
+
+func (il *IntegerLiteral) expressionNode()      {}
+func (il *IntegerLiteral) TokenLiteral() string { return il.Token.Literal }
+func (il *IntegerLiteral) String() string       { return il.Token.Literal }
+
 func (es *ExpressionStatement) statementNode()       {}
 func (es *ExpressionStatement) TokenLiteral() string { return es.Token.Literal }
 func (es *ExpressionStatement) String() string {
@@ -70,9 +79,9 @@ func (ls *LetStatement) String() string {
 	return out.String()
 }
 
-func (identifier *Identifier) expressionNode()      {}
-func (identifier *Identifier) TokenLiteral() string { return identifier.Token.Literal }
-func (identifier *Identifier) String() string       { return identifier.Value }
+func (i *Identifier) expressionNode()      {}
+func (i *Identifier) TokenLiteral() string { return i.Token.Literal }
+func (i *Identifier) String() string       { return i.Value }
 
 func (rs *ReturnStatement) statementNode()       {}
 func (rs *ReturnStatement) TokenLiteral() string { return rs.Token.Literal }
@@ -86,18 +95,58 @@ func (rs *ReturnStatement) String() string {
 	return out.String()
 }
 
-func (program *Program) TokenLiteral() string {
-	if len(program.Statements) > 0 {
-		return program.Statements[0].TokenLiteral()
+func (p *Program) TokenLiteral() string {
+	if len(p.Statements) > 0 {
+		return p.Statements[0].TokenLiteral()
 	} else {
 		return ""
 	}
 }
 
-func (program *Program) String() string {
+func (p *Program) String() string {
 	var out bytes.Buffer
-	for _, s := range program.Statements {
+	for _, s := range p.Statements {
 		out.WriteString(s.String())
 	}
+	return out.String()
+}
+
+type PrefixExpression struct {
+	Token    token.Token
+	Operator string
+	Right    Expression
+}
+
+func (pe *PrefixExpression) expressionNode()      {}
+func (pe *PrefixExpression) TokenLiteral() string { return pe.Token.Literal }
+func (pe *PrefixExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("(")
+	out.WriteString(pe.Operator)
+	out.WriteString(pe.Right.String())
+	out.WriteString(")")
+
+	return out.String()
+}
+
+type InfixExpression struct {
+	Token    token.Token
+	Left     Expression
+	Operator string
+	Right    Expression
+}
+
+func (ie *InfixExpression) expressionNode()      {}
+func (ie *InfixExpression) TokenLiteral() string { return ie.Token.Literal }
+func (ie *InfixExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("(")
+	out.WriteString(ie.Left.String())
+	out.WriteString(" " + ie.Operator + " ")
+	out.WriteString(ie.Right.String())
+	out.WriteString(")")
+
 	return out.String()
 }
